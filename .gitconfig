@@ -1,0 +1,11 @@
+[includeIf "gitdir:/home/userNAME/dotfiles/"]
+    path = ~/.gitconfig.pers
+
+[includeIf "gitdir:/home/userNAME/repos/"]
+    path = ~/.gitconfig.first
+
+[includeIf "gitdir:/home/userNAME/stories_first/"]
+    path = ~/.gitconfig.first
+
+[includeIf "gitdir:/home/userNAME/stories_second/"]
+    path = ~/.gitconfig.second

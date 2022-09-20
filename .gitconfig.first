@@ -1,0 +1,6 @@
+[user]
+    email = XXXXXXXXXX
+    name = YYYYYYYYY
+[core]
+    sshCommand = ssh -i /home/userNAME/.ssh/id_first
+

@@ -1,0 +1,8 @@
+### direnv ###
+.direnv
+.envrc
+
+
+bash_private
+bash_aliases_*
+
