@@ -8,7 +8,7 @@ wget http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noa
 dnf localinstall rpmfusion* adobe-release* -y
 
 dnf install\
-  hddtemp keepassxc sshfs pssh keepass fido2-tools nmap\
+  hddtemp keepassxc sshfs pssh fido2-tools nmap\
   python-pip python-dns p7zip\
   podman-compose.noarch podman-docker.noarch virt-manager\
   meld mc tigervnc rdesktop transmission wireshark\
@@ -19,7 +19,8 @@ dnf install\
   nm-connection-editor gkrellm-sun wmctrl gnome-tweak-tool\
   gnome-shell-extension* gnome-shell-theme* gdm dconf-editor gconf-editor\
   calibre libreoffice-draw\
-  dia gimp-data-extras gimp-resynthesizer ufraw-gimp gimp
+  dia gimp-data-extras gimp-resynthesizer ufraw-gimp gimp\
+  vim-enhanced gedit
 
 dnf install \
   synergy_*.rpm
