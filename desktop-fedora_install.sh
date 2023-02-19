@@ -44,6 +44,10 @@ EOF
 
 dnf install -y kubectl
 
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
 
 # flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 # flatpak install flathub org.telegram.desktop
@@ -59,3 +63,6 @@ systemctl enable --now zabbix-agent.service
 mv /etc/libvirt /etc/libvirt.orig
 cp "${SYSBAK}/etc/libvirt" /etc
 systemctl enable --now libvirtd.service
+
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
