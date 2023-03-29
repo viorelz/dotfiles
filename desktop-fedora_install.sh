@@ -66,3 +66,8 @@ systemctl enable --now libvirtd.service
 
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+wget https://github.com/Azure/kubelogin/releases/download/v0.0.28/kubelogin-linux-amd64.zip
+unzip kubelogin-linux-amd64.zip
+echo "Remember to move the kubelogin binary to your favorite bin location:"
+find ./bin -type f
