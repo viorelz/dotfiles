@@ -87,6 +87,11 @@ gpsubdirs () {
   done
 }
 
+# find git ignored files and display the decisive rule
+gfignored () {
+    find ./ -not -path './.git/*' -not -path '*/.terraform*' | git check-ignore -v --stdin
+}
+
 
 #TerraForm MOdule Initialize
 function tfmoi {
