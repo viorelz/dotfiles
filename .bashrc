@@ -8,6 +8,10 @@ fi
 export EDITOR="/usr/bin/vim"
 PATH="$HOME/.local/bin:$HOME/bin:${PATH}"
 
+# for iterm
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+
 # -- History
 
 # ignoreboth ignores commands starting with a space and duplicates. Erasedups

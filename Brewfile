@@ -1,8 +1,3 @@
-
-# brew "cloudfoundry/tap/bbl"
-# brew "cloudfoundry/tap/bosh-cli"
-# brew "cloudfoundry/tap/cf-cli"
-# brew "cloudfoundry/tap/credhub-cli"
 # brew "cmake"
 # brew "cocoapods"
 # brew "dart-lang/dart/dart"
