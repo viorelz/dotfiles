@@ -77,17 +77,38 @@ unzip kubelogin-linux-amd64.zip
 echo "Remember to move the kubelogin binary to your favorite bin location:"
 find ./bin -type f
 
-## install kubectl krew plugin
-(
-  set -x; cd "$(mktemp -d)" &&
-  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-  KREW="krew-${OS}_${ARCH}" &&
-  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-  tar zxvf "${KREW}.tar.gz" &&
-  ./"${KREW}" install krew
-)
-export PATH="$HOME/.krew/bin:$PATH"
+# ## install kubectl krew plugin
+# (
+#   set -x; cd "$(mktemp -d)" &&
+#   OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+#   ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+#   KREW="krew-${OS}_${ARCH}" &&
+#   curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+#   tar zxvf "${KREW}.tar.gz" &&
+#   ./"${KREW}" install krew
+# )
+# export PATH="$HOME/.krew/bin:$PATH"
 
-kubectl krew install ctx
-kubectl krew install ns
+# kubectl krew install ctx
+# kubectl krew install ns
+
+rpm --import https://packages.microsoft.com/keys/microsoft.asc
+sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+dnf install code
+
+# install vscode extentions
+# code --list-extensions | xargs -L 1 echo code --install-extension
+code --install-extension 4ops.terraform
+code --install-extension eamodio.gitlens
+code --install-extension fudd.toggle-zen-mode
+code --install-extension lunuan.kubernetes-templates
+code --install-extension mhutchie.git-graph
+code --install-extension moshfeu.compare-folders
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+code --install-extension ms-python.python
+code --install-extension ms-python.vscode-pylance
+code --install-extension redhat.vscode-yaml
+code --install-extension VisualStudioExptTeam.intellicode-api-usage-examples
+code --install-extension VisualStudioExptTeam.vscodeintellicode
+code --install-extension yzhang.markdown-all-in-one
+code --install-extension ZainChen.json
