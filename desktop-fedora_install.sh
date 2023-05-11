@@ -20,7 +20,7 @@ dnf install\
   gnome-shell-extension* gnome-shell-theme* gdm dconf-editor gconf-editor\
   calibre libreoffice-draw\
   dia gimp-data-extras gimp-resynthesizer ufraw-gimp gimp\
-  vim-enhanced gedit
+  vim-enhanced gedit xclip
 
 dnf install \
   synergy_*.rpm
@@ -41,17 +41,6 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-
-dnf install -y kubectl
-
-# install kubelogin:
-# wget https://github.com/Azure/kubelogin/releases/download/v0.0.29/kubelogin-linux-amd64.zip
-# unzip kubelogin-linux-amd64.zip
-# mv kubelogin ~/.local/bin
-
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
 
 
 # flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo

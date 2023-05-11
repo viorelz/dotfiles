@@ -107,6 +107,7 @@ cask "google-chrome"
 cask "iterm2"
 cask "karabiner-elements"  #keyboard customizer
 cask "keepassxc"
+cask "meld"
 cask "microsoft-teams"
 cask "skype"
 cask "slack"

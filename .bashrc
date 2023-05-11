@@ -6,7 +6,7 @@ if [ -f /etc/bashrc ]; then
 fi
 
 export EDITOR="/usr/bin/vim"
-PATH="$HOME/.local/bin:$HOME/bin:${PATH}"
+PATH="$HOME/.local/bin:${PATH}"
 
 # for iterm
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -27,6 +27,9 @@ shopt -s cmdhist    # save multi line commands as one command
 # Save multi-line commands to the history with embedded newlines
 # instead of semicolons -- requries cmdhist to be on.
 shopt -s lithist
+
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
 
 
 # Colored man pages
