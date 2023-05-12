@@ -7,12 +7,18 @@ wget http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(r
 wget http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noarch.rpm
 dnf localinstall rpmfusion* adobe-release* -y
 
+dnf install dnf-plugins-core tree bind-utils lynx\
+  dstat iotop tcpdump iptraf telnet nc lftp man rsync net-tools mdadm\
+  openssh-clients mc strace lsof wget git lshw hdparm parted\
+  bash-completion zip unzip hstr pciutils smartmontools\
+  hddtemp jwhois pv pwgen smem htop util-linux
+
 dnf install\
-  hddtemp keepassxc sshfs pssh fido2-tools nmap\
-  python-pip python-dns p7zip\
+  keepassxc sshfs pssh fido2-tools nmap\
+  python-pip python-dns p7zip gparted\
   podman-compose.noarch podman-docker.noarch virt-manager\
-  meld mc tigervnc rdesktop transmission wireshark\
-  filezilla lftp postfix zabbix-agent\
+  meld tigervnc rdesktop transmission wireshark\
+  filezilla postfix zabbix-agent\
   terminus* cascadia-code-fonts terminator direnv evtest\
   mpv gnome-mpv audacious audacity flash-plugin ffmpeg\
   firefox thunderbird\
@@ -24,6 +30,11 @@ dnf install\
 
 dnf install \
   synergy_*.rpm
+
+
+dnf config-manager --add-repo https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+rpm --import https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+dnf install brave-browser
 
 
 rpm --import https://packages.microsoft.com/keys/microsoft.asc

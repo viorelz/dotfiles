@@ -33,7 +33,7 @@ function base64-encode() {
 
 # Base64 decode 
 function base64-decode() {
-    echo -n "$@" | base64 -D;
+    echo -n "$@" | base64 -d;
 }
 
 # cd and ls
