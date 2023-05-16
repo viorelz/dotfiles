@@ -75,3 +75,8 @@ alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resource
 alias ipcalculator='whatmask'
 
 alias ping='prettyping --nolegend'
+
+
+
+###
+ln -s /opt/homebrew/opt/mysql-client@5.7/bin/mysql /opt/homebrew/bin/mysql
