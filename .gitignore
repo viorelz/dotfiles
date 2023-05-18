@@ -6,3 +6,7 @@
 bash_private
 bash_aliases_*
 
+.bash_private
+.bash_aliases_*
+
+Brewfile.lock.json

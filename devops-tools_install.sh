@@ -46,9 +46,15 @@ fi
 # install krew plugin for kubectl
 kubectl plugin list | grep krew > /dev/null 2>&1
 if [ $? -gt 1 ]; then
-  curl -fsSLO https://github.com/kubernetes-sigs/krew/releases/latest/download/krew-linux_amd64.tar.gz
-  tar zxvf krew-linux_amd64.tar.gz
-  ./krew-linux_amd64 install krew
+  (
+    set -x; cd "$(mktemp -d)" &&
+    OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+    KREW="krew-${OS}_${ARCH}" &&
+    curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+    tar zxvf "${KREW}.tar.gz" &&
+    ./"${KREW}" install krew
+  )
   export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 fi
 
