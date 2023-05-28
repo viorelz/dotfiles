@@ -180,4 +180,3 @@ users:
       provideClusterInfo: false
 EOF
 fi
-

@@ -12,7 +12,7 @@
 # brew "mariadb"
 # brew "minikube"
 # brew "neofetch"  #displays information about your operating system, software and hardware in an aesthetic and visually pleasing way
-# brew "nim"  #systems programming language. It combines successful concepts from mature languages like Python, Ada and Modula. 
+# brew "nim"  #systems programming language. It combines successful concepts from mature languages like Python, Ada and Modula.
 # brew "nodenv"
 # brew "openal-soft"  #Implementation of the OpenAL 3D audio API
 # brew "operator-sdk"  #SDK for building Kubernetes applications
@@ -56,7 +56,7 @@ brew "graphviz"
 brew "helm"
 brew "hopenpgp-tools"
 brew "htop"
-brew "hub"  #helps you do everyday GitHub tasks without ever leaving the terminal. 
+brew "hub"  #helps you do everyday GitHub tasks without ever leaving the terminal.
 brew "hugo"  #Configurable static site generator
 brew "ideviceinstaller"
 brew "jq"
@@ -69,6 +69,7 @@ brew "mysql-client@5.7"
 brew "neovim"
 brew "nmap"
 brew "pinentry-mac"
+brew "pre-commit"
 brew "python"
 brew "rbenv"
 brew "rbenv-gemset"
@@ -84,7 +85,9 @@ brew "sevenzip"
 brew "shellcheck"
 brew "skaffold"  #Easy and Repeatable Kubernetes Development
 brew "st"  #simple statistics from the command line interface (CLI)
+brew "terraform-docs"
 brew "tfenv"
+brew "tflint"
 brew "the_silver_searcher"  #A code searching tool similar to ack, with a focus on speed.
 brew "tig"  #Tig is an ncurses-based text-mode interface for git.
 brew "tmux"
@@ -107,6 +110,7 @@ cask "anaconda"
 cask "blender"
 cask "brave-browser"
 cask "firefox"
+cask "gimp"
 cask "godot"
 cask "google-chrome"
 cask "insomnia"
