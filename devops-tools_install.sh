@@ -71,6 +71,10 @@ if ! command -v helm 1>/dev/null 2>&1; then
   ./get_helm.sh
 fi
 
+if command -v helm 1>/dev/null 2>&1; then
+  helm plugin install https://github.com/databus23/helm-diff
+fi
+
 # install awscli
 if ! command -v aws 1>/dev/null 2>&1; then
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
