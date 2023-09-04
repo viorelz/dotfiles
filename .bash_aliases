@@ -133,6 +133,7 @@ alias kgda='kubectl get deployment --all-namespaces'
 alias kgdn='kubectl get deployment --namespace'
 alias kge='kubectl get events --sort-by=.metadata.creationTimestamp'
 alias kgen='kubectl get events --sort-by=.metadata.creationTimestamp --namespace'
+alias kgm='kubectl get mappings'
 alias kgn='kubectl get nodes'
 alias kgp='kubectl get pod'
 alias kgpa='kubectl get pod --all-namespaces'
@@ -140,6 +141,7 @@ alias kgpaw='kubectl get pod --all-namespaces -w'
 alias kgpn='kubectl get pod --namespace'
 alias kgs='kubectl get secret'
 alias kgsa='kubectl get secret --all-namespaces'
+alias kgsd='kubectl get secretdefinitions'
 alias kgsn='kubectl get secret --namespace'
 alias kgsv='kubectl get service'
 alias kgsva='kubectl get service --all-namespaces'
@@ -147,8 +149,14 @@ alias kgsvn='kubectl get service --namespace'
 alias kl='kubectl logs'
 alias kln='kubectl logs --namespace'
 alias kp='kubectl proxy'
+alias kpf='kubectl port-forward'
 alias krrd='kubectl rollout restart deployment'
 for i in {0..99}; do
   eval "alias ksdr${i}='kubectl scale deployment --replicas=$i'"
   eval "alias ksdr${i}n='kubectl scale deployment --replicas=$i --namespace'"
 done
+
+### HELM
+alias hgm="helm get manifest"
+alias hls="helm ls"
+alias hlsa="helm ls -A"

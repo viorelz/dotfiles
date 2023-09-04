@@ -68,6 +68,7 @@ brew "helm"
 brew "helmfile"
 brew "hopenpgp-tools"
 brew "htop"
+brew "httpie"
 brew "hub"  #helps you do everyday GitHub tasks without ever leaving the terminal.
 brew "hugo"  #Configurable static site generator
 brew "ideviceinstaller"
