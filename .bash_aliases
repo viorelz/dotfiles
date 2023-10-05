@@ -115,6 +115,7 @@ alias m_httpd="multitail -s 2 -cS apache /var/log/httpd/access_log -cS apache_er
 
 ### KUBERNETES
 alias k='kubectl'
+alias kcdy='kubectl create --dry-run=client -o yaml'
 alias kd='kubectl describe'
 alias kdd='kubectl describe deployment'
 alias kddn='kubectl describe deployment --namespace'
@@ -128,6 +129,7 @@ alias kdsvn='kubectl describe service --namespace'
 alias ke='kubectl edit'
 alias kg='kubectl get'
 alias kga='kubectl get --all-namespaces'
+alias kgcm='kubectl get configmap'
 alias kgd='kubectl get deployment'
 alias kgda='kubectl get deployment --all-namespaces'
 alias kgdn='kubectl get deployment --namespace'

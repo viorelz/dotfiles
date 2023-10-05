@@ -21,8 +21,10 @@ export FLUX_FORWARD_NAMESPACE=flux
 
 
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-export PATH="$HOME/.tfenv/bin:$HOME/bin:$PATH"
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+if [ -f "$HOME/.tfenv/bin" ]; then
+  export PATH="$HOME/.tfenv/bin:$HOME/bin:$PATH"
+fi
 
 
 # Pyenv initialization
@@ -34,17 +36,20 @@ if command -v direnv 1>/dev/null 2>&1; then
   eval "$(direnv hook bash)"
 fi
 
+if [ -f "${HOME}/.krew/bin" ]; then
+  export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+fi
+
 if command -v kubectl 1>/dev/null 2>&1; then
-  source <(kubectl completion bash)
+  $(kubectl completion bash) | source
   complete -F __start_kubectl k
 fi
 
 if command -v helm 1>/dev/null 2>&1; then
-  source <(helm completion bash)
+  $(helm completion bash) | source
 fi
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 # # https://github.com/gsamokovarov/jump
 # eval "$(jump shell)"
-
