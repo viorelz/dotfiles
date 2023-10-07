@@ -109,6 +109,12 @@ function getcertnames() {
     fi;
 }
 
+# ----------------------
+# Git Functions
+# ----------------------
+# Git log find by commit message
+function glf() { git log --all --grep="$1"; }
+
 # descend into subdirectories and do git status
 gssubdirs () {
   find ./ -mindepth 1 -maxdepth 1 -type d | while read dir

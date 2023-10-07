@@ -161,4 +161,4 @@ done
 ### HELM
 alias hgm="helm get manifest"
 alias hls="helm ls"
-alias hlsa="helm ls -A"
+alias hlsa="helm ls -a"

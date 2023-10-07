@@ -8,6 +8,11 @@ if [ -f "$HOME/.pyenv" ]; then
   export PATH="$PYENV_ROOT/bin:$PATH"
 fi
 
+# Pyenv initialization
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init --path)"
+fi
+
 export GOPATH=~/go
 
 if [ -f "$HOME/.nvm" ]; then
@@ -24,12 +29,6 @@ export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
 if [ -f "$HOME/.tfenv/bin" ]; then
   export PATH="$HOME/.tfenv/bin:$HOME/bin:$PATH"
-fi
-
-
-# Pyenv initialization
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init --path)"
 fi
 
 if command -v direnv 1>/dev/null 2>&1; then
