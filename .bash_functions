@@ -358,3 +358,9 @@ kdebug_ubuntu() {
     kubectl run -i --rm --tty debug --image=ubuntu --restart=Never -- sh
 }
 
+function get_secret {
+    command="vault kv get -field=$1 $2";
+    echo >&2 $command;
+    eval $command;
+}
+

@@ -6,7 +6,7 @@ if [ -f /etc/bashrc ]; then
 fi
 
 export EDITOR="/usr/bin/vim"
-PATH="$HOME/.local/bin:${PATH}"
+PATH="$HOME/.local/bin:$HOME/bin:${PATH}"
 
 # for iterm
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -117,6 +117,7 @@ set_prompt() {
 [ -r ~/.bash_aliases ] && source ~/.bash_aliases
 [ -r ~/.bash_functions ] && source ~/.bash_functions
 [ -r ~/.bash_envs ] && source ~/.bash_envs
+
 
 if type brew &>/dev/null
 then
