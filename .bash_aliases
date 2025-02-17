@@ -22,7 +22,6 @@ fi
 # Trim new lines and copy to clipboard
 alias c="tr -d '\n' | pbcopy"
 
-
 # ----------------------
 # Git Aliases
 # ----------------------
@@ -68,8 +67,6 @@ alias gsw='git switch'
 # Git log find by commit message
 function glf() { git log --all --grep="$1"; }
 
-
-
 ## terraform "shortcuts"
 alias tf='terraform'
 alias tfa='terraform apply'
@@ -106,12 +103,10 @@ alias tfwnw='terraform workspace new'
 alias tfwst='terraform workspace select'
 alias tfwsw='terraform workspace show'
 
-
 # MULTITAIL
 alias m_qmail="multitail -s 2 -cv qmailtimestr /var/log/qmail/current -cv qmailtimestr /var/log/qmail/smtpd/current"
 alias m_mail="multitail -s 2 /var/log/maillog /var/spool/qscan/qmail-queue.log"
 alias m_httpd="multitail -s 2 -cS apache /var/log/httpd/access_log -cS apache_error /var/log/httpd/error_log"
-
 
 ### KUBERNETES
 alias k='kubectl'
