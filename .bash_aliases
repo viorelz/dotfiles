@@ -122,6 +122,10 @@ alias kdsv='kubectl describe service'
 alias kdsva='kubectl describe service --all-namespaces'
 alias kdsvn='kubectl describe service --namespace'
 alias ke='kubectl edit'
+alias kecm='kubectl edit configmap'
+alias keds='kubectl edit daemonset'
+alias ked='kubectl edit deployment'
+alias kem='kubectl edit mapping'
 alias kg='kubectl get'
 alias kga='kubectl get --all-namespaces'
 alias kgcm='kubectl get configmap'
@@ -148,7 +152,7 @@ alias kln='kubectl logs --namespace'
 alias kp='kubectl proxy'
 alias kpf='kubectl port-forward'
 alias krrd='kubectl rollout restart deployment'
-for i in {0..99}; do
+for i in {0..9}; do
   eval "alias ksdr${i}='kubectl scale deployment --replicas=$i'"
   eval "alias ksdr${i}n='kubectl scale deployment --replicas=$i --namespace'"
 done
@@ -156,4 +160,4 @@ done
 ### HELM
 alias hgm="helm get manifest"
 alias hls="helm ls"
-alias hlsa="helm ls -a"
+alias hlsa="helm ls -A"
