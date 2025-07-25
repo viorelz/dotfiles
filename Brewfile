@@ -18,6 +18,7 @@
 # brew "operator-sdk"  #SDK for building Kubernetes applications
 # brew "postgresql"
 # cask "alacritty"  #A fast, cross-platform, OpenGL terminal emulator
+# cask "android-file-transfer"
 # cask "android-studio"
 # cask "balenaetcher"  #Tool to flash OS images to SD cards & USB drives
 # cask "epic-games"
@@ -35,12 +36,14 @@ tap "auth0/auth0-cli"
 tap "Azure/kubelogin"
 tap "homebrew/bundle"
 # tap "homebrew/cask" - Tapping homebrew/cask is no longer typically necessary.
-tap "homebrew/cask-fonts"
-tap "homebrew/cask-versions"
+# tap "homebrew/cask-fonts"
+# tap "homebrew/cask-versions"
 # tap "homebrew/core" - Tapping homebrew/core is no longer typically necessary.
 tap "homebrew/services"
+tap "localsend/localsend"
 tap "terraform-docs/tap"
 
+brew "asitop"  #terminal monitoring tool for Apple Silicon
 brew "aspell"
 brew "auth0"
 brew "awscli"
@@ -49,6 +52,7 @@ brew "bash"
 brew "bash-completion@2"
 brew "bat"
 brew "brew-cask-completion"
+brew "btop"  #terminal monitoring
 brew "cask"
 brew "colordiff"
 brew "coreutils"
@@ -72,6 +76,8 @@ brew "httpie"
 brew "hub"  #helps you do everyday GitHub tasks without ever leaving the terminal.
 brew "hugo"  #Configurable static site generator
 brew "ideviceinstaller"
+brew "iperf3"
+brew "iproute2mac"
 brew "jq"
 brew "jump"
 brew "kubelogin"
@@ -82,6 +88,7 @@ brew "midnight-commander"
 brew "mysql-client@5.7"
 brew "neovim"
 brew "nmap"
+brew "nvtop"  #terminal Interactive GPU process monitor
 brew "openconnect"
 brew "pinentry-mac"
 brew "pre-commit"
@@ -112,6 +119,7 @@ brew "vault"
 brew "vim"
 brew "watch"
 brew "wget"
+brew "yazi"  #terminal file manager
 brew "ykman"  #Tool for managing your YubiKey configuration
 brew "ykpers"  #YubiKey personalization library and tool
 brew "youtube-dl"
@@ -123,7 +131,6 @@ brew "zsh-syntax-highlighting"
 
 cask "1password-cli"
 cask "anaconda"
-cask "android-file-transfer"
 cask "blender"
 cask "brave-browser"
 cask "cyberduck"
@@ -140,7 +147,10 @@ cask "google-chrome"
 cask "insomnia"
 cask "iterm2"
 cask "keepassxc"
+cask "kitty"
+cask "localsend"
 cask "meld"
+cask "raspberry-pi-imager"
 cask "sensiblesidebuttons"  ## enable back/forward mouse buttons
 cask "shottr"
 cask "skype"

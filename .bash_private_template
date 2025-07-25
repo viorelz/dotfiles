@@ -1,0 +1,5 @@
+alias ssh_someplace='ssh -p 12345 root@someplace'
+
+alias aslen='aws --profile SOMEACCN sso login'
+alias aslep='aws --profile SOMEACCP sso login'
+alias clb='/path/to/script/create_lb.sh'
