@@ -22,7 +22,6 @@ fi
 # Trim new lines and copy to clipboard
 alias c="tr -d '\n' | pbcopy"
 
-
 # ----------------------
 # Git Aliases
 # ----------------------
@@ -68,8 +67,6 @@ alias gsw='git switch'
 # Git log find by commit message
 function glf() { git log --all --grep="$1"; }
 
-
-
 ## terraform "shortcuts"
 alias tf='terraform'
 alias tfa='terraform apply'
@@ -106,12 +103,10 @@ alias tfwnw='terraform workspace new'
 alias tfwst='terraform workspace select'
 alias tfwsw='terraform workspace show'
 
-
 # MULTITAIL
 alias m_qmail="multitail -s 2 -cv qmailtimestr /var/log/qmail/current -cv qmailtimestr /var/log/qmail/smtpd/current"
 alias m_mail="multitail -s 2 /var/log/maillog /var/spool/qscan/qmail-queue.log"
 alias m_httpd="multitail -s 2 -cS apache /var/log/httpd/access_log -cS apache_error /var/log/httpd/error_log"
-
 
 ### KUBERNETES
 alias k='kubectl'
@@ -127,6 +122,10 @@ alias kdsv='kubectl describe service'
 alias kdsva='kubectl describe service --all-namespaces'
 alias kdsvn='kubectl describe service --namespace'
 alias ke='kubectl edit'
+alias kecm='kubectl edit configmap'
+alias keds='kubectl edit daemonset'
+alias ked='kubectl edit deployment'
+alias kem='kubectl edit mapping'
 alias kg='kubectl get'
 alias kga='kubectl get --all-namespaces'
 alias kgcm='kubectl get configmap'
@@ -153,7 +152,7 @@ alias kln='kubectl logs --namespace'
 alias kp='kubectl proxy'
 alias kpf='kubectl port-forward'
 alias krrd='kubectl rollout restart deployment'
-for i in {0..99}; do
+for i in {0..9}; do
   eval "alias ksdr${i}='kubectl scale deployment --replicas=$i'"
   eval "alias ksdr${i}n='kubectl scale deployment --replicas=$i --namespace'"
 done
@@ -161,4 +160,4 @@ done
 ### HELM
 alias hgm="helm get manifest"
 alias hls="helm ls"
-alias hlsa="helm ls -a"
+alias hlsa="helm ls -A"

@@ -2,7 +2,7 @@
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
+  . /etc/bashrc
 fi
 
 export EDITOR="/usr/bin/vim"
@@ -11,15 +11,14 @@ PATH="$HOME/.local/bin:$HOME/bin:${PATH}"
 # for iterm
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-
 # -- History
 
 # ignoreboth ignores commands starting with a space and duplicates. Erasedups
 # removes all previous dups in history
-export HISTCONTROL=ignoreboth:erasedups  
-export HISTFILE=~/.bash_history          # be explicit about file path
-export HISTSIZE=100000                   # in memory history size
-export HISTFILESIZE=100000               # on disk history size
+export HISTCONTROL=ignoreboth:erasedups
+export HISTFILE=~/.bash_history # be explicit about file path
+export HISTSIZE=100000          # in memory history size
+export HISTFILESIZE=100000      # on disk history size
 export HISTTIMEFORMAT='%F %T '
 shopt -s histappend # append to history, don't overwrite it
 shopt -s cmdhist    # save multi line commands as one command
@@ -31,7 +30,6 @@ shopt -s lithist
 bind '"\e[A": history-search-backward'
 bind '"\e[B": history-search-forward'
 
-
 # Colored man pages
 export LESS_TERMCAP_mb=$'\E[01;31m'
 export LESS_TERMCAP_md=$'\E[01;31m'
@@ -40,7 +38,6 @@ export LESS_TERMCAP_se=$'\E[0m'
 export LESS_TERMCAP_so=$'\E[01;44;33m'
 export LESS_TERMCAP_ue=$'\E[0m'
 export LESS_TERMCAP_us=$'\E[01;32m'
-
 
 # # enable GIT prompt options
 # export GIT_PS1_SHOWCOLORHINTS=true
@@ -51,7 +48,6 @@ export LESS_TERMCAP_us=$'\E[01;32m'
 
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
-
 
 # # -- Misc
 
@@ -84,12 +80,10 @@ shopt -s dirspell direxpand
 shopt -s no_empty_cmd_completion
 
 # note: bind used instead of sticking these in .inputrc
-bind "set completion-ignore-case on" 
+bind "set completion-ignore-case on"
 
 # # Case-insensitive filename matching in filename expansion.
 # shopt -s nocaseglob
-
-
 
 # Command that Bash executes just before displaying a prompt
 export PROMPT_COMMAND=set_prompt
@@ -102,11 +96,12 @@ set_prompt() {
   PS1="\u@\h:\w$\[$reset\] "
   # If exit code of last command is non-zero, prepend this code to the prompt
   [[ "$ex" -ne 0 ]] && PS1="$PS1($ex) "
-  history -a; history -c; history -r
+  history -a
+  history -c
+  history -r
 }
 
 #sudo /home/viorel/work/volumeButton.reset.sh
-
 
 # Source other files
 
@@ -118,31 +113,25 @@ set_prompt() {
 [ -r ~/.bash_functions ] && source ~/.bash_functions
 [ -r ~/.bash_envs ] && source ~/.bash_envs
 
-
-if type brew &>/dev/null
-then
+if type brew &>/dev/null; then
   HOMEBREW_PREFIX="$(brew --prefix)"
-  if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]
-  then
+  if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]; then
     source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
   else
-    for COMPLETION in "${HOMEBREW_PREFIX}/etc/bash_completion.d/"*
-    do
+    for COMPLETION in "${HOMEBREW_PREFIX}/etc/bash_completion.d/"*; do
       [[ -r "${COMPLETION}" ]] && source "${COMPLETION}"
     done
   fi
 fi
 
-
-# Get it from the original Git repo: 
+# Get it from the original Git repo:
 # https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
 if [ -f ~/.git-prompt.sh ]; then
   source ~/.git-prompt.sh
 fi
 
-# # Get it from the original Git repo: 
+# # Get it from the original Git repo:
 # https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
 if [ -f ~/.git-completion.bash ]; then
   source ~/.git-completion.bash
 fi
-
