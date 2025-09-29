@@ -3,7 +3,7 @@ if command -v /opt/homebrew/bin/brew 1>/dev/null 2>&1; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-if [ -f "$HOME/.pyenv" ]; then
+if [ -d "$HOME/.pyenv" ]; then
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
 fi
@@ -15,7 +15,7 @@ fi
 
 export GOPATH=~/go
 
-if [ -f "$HOME/.nvm" ]; then
+if [ -d "$HOME/.nvm" ]; then
   export NVM_DIR="$HOME/.nvm"
   export PATH="$HOME/node_modules/.bin:$PATH"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -27,7 +27,7 @@ export FLUX_FORWARD_NAMESPACE=flux
 
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
-if [ -f "$HOME/.tfenv/bin" ]; then
+if [ -d "$HOME/.tfenv/bin" ]; then
   export PATH="$HOME/.tfenv/bin:$HOME/bin:$PATH"
 fi
 
@@ -35,17 +35,17 @@ if command -v direnv 1>/dev/null 2>&1; then
   eval "$(direnv hook bash)"
 fi
 
-if [ -f "${HOME}/.krew/bin" ]; then
+if [ -d "${HOME}/.krew/bin" ]; then
   export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 fi
 
 if command -v kubectl 1>/dev/null 2>&1; then
-  $(kubectl completion bash) | source
+  eval "$(kubectl completion bash)"
   complete -F __start_kubectl k
 fi
 
 if command -v helm 1>/dev/null 2>&1; then
-  $(helm completion bash) | source
+  eval "$(helm completion bash)"
 fi
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash

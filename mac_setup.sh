@@ -1,4 +1,18 @@
 #!/bin/bash
+###############################################################################
+# File: mac_setup.sh
+# Purpose: Collection of macOS-specific aliases and tweaks to enhance terminal
+#          usability, file management, networking utilities, and system tasks.
+# Usage:   Source from your shell profile (e.g., add: source mac_setup.sh)
+# Scope:   Defines aliases only; no functions altering system state except the
+#          final symbolic link for legacy MySQL client convenience.
+# Requirements: Standard macOS utilities, optional tools: prettyping, whatmask.
+# Notes:
+#   - Some aliases (update) rely on Homebrew
+#   - 'ln -s ... mysql' line assumes mysql-client@5.7 installed via brew
+#   - Consider verifying existence before symlink creation to avoid conflicts.
+# Safe Removal: Remove individual aliases by unsetting (e.g., unalias la).
+###############################################################################
 
 # List all files colorized in long format, including dot files
 alias la="ls -laF ${colorflag}"

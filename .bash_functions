@@ -1,3 +1,16 @@
+###############################################################################
+# File: .bash_functions
+# Purpose: Utility functions for daily DevOps workflows (filesystem helpers,
+#          encoding, git repo batch ops, Terraform scaffolding, AWS SSO/profile
+#          helpers, EKS kubeconfig management, Kubernetes debug pods, Vault
+#          secret retrieval, direnv convenience, archive extraction, TLS cert
+#          inspection, and simple colored output wrappers).
+# Usage: Source from .bashrc:  [ -f "$HOME/.bash_functions" ] && . "$HOME/.bash_functions"
+# Conventions: Each function includes a short comment describing usage.
+# Dependencies (optional across functions): git, terraform, jq, aws, kubectl,
+#   helm, openssl, unrar/7z, vault, direnv, tput, base64, grep, sed, awk.
+###############################################################################
+
 NORMAL=$(tput sgr0)
 GREEN=$(
     tput setaf 2
@@ -6,38 +19,42 @@ GREEN=$(
 YELLOW=$(tput setaf 3)
 RED=$(tput setaf 1)
 
+## Colorize arguments in red
 function red() {
     echo -e "$RED$*$NORMAL"
 }
 
+## Colorize arguments in green
 function green() {
     echo -e "$GREEN$*$NORMAL"
 }
 
+## Colorize arguments in yellow
 function yellow() {
     echo -e "$YELLOW$*$NORMAL"
 }
 
+## Create directory (parents) and cd into it: mkcd dir
 function mkcd() {
     if [ $# -eq 0 ]; then
         echo "Usage: mkcd dirName"
     else
-        mkdir $1
+        mkdir -p $1
         cd $1
     fi
 }
 
-# Base64 encode
+## Base64 encode (no trailing newline): base64-encode text
 function base64-encode() {
     echo -n "$@" | base64
 }
 
-# Base64 decode
+## Base64 decode (no trailing newline): base64-decode encodedText
 function base64-decode() {
     echo -n "$@" | base64 -d
 }
 
-# cd and ls
+## Change dir then list (defaults HOME): cl [dir]
 function cl() {
     DIR="$*"
     # if no DIR given, go home
@@ -49,7 +66,7 @@ function cl() {
         ls -F --color=auto
 }
 
-# extracts the given file
+## Extract archive by extension: x file.ext
 x() {
     if [ -f $1 ]; then
         case $1 in
@@ -71,13 +88,12 @@ x() {
     fi
 }
 
-# Run `dig` and display the most useful info
+## dig ANY record answer section only: digga domain
 function digga() {
     dig +nocmd "$1" any +multiline +noall +answer
 }
 
-# Show all the names (CNs and SANs) listed in the SSL certificate
-# for a given domain
+## Show CN & SANs from remote TLS certificate: getcertnames domain
 function getcertnames() {
     if [ -z "${1}" ]; then
         echo "ERROR: No domain specified."
@@ -113,10 +129,10 @@ function getcertnames() {
 # ----------------------
 # Git Functions
 # ----------------------
-# Git log find by commit message
+## Git search commit messages (all refs): glf "pattern"
 function glf() { git log --all --grep="$1"; }
 
-# descend into subdirectories and do git status
+## Git status for each immediate subdirectory repo: gssubdirs
 gssubdirs() {
     find ./ -mindepth 1 -maxdepth 1 -type d | while read dir; do
         cd ${dir}
@@ -126,7 +142,7 @@ gssubdirs() {
     done
 }
 
-# descend into subdirectories and do git pull
+## Git pull origin master for each immediate subdirectory repo: gpsubdirs
 gpsubdirs() {
     find ./ -mindepth 1 -maxdepth 1 -type d | while read dir; do
         cd ${dir}
@@ -140,12 +156,12 @@ gpsubdirs() {
     done
 }
 
-# find git ignored files and display the decisive rule
+## Show ignored files + rule (excludes .git & .terraform): gfignored
 gfignored() {
     find ./ -not -path './.git/*' -not -path '*/.terraform*' | git check-ignore -v --stdin
 }
 
-#TerraForm MOdule Initialize
+## Terraform module initialize skeleton: tfmoi moduleDir
 function tfmoi {
     if [ $# -eq 0 ]; then
         echo "Usage: tfmoi moduleNameDir"
@@ -160,7 +176,7 @@ function tfmoi {
     fi
 }
 
-# TerraForm MOdule Explained
+## Terraform list outputs & variables in module: tfmoe moduleDir
 function tfmoe {
     if [ $# -eq 0 ]; then
         echo "Usage: tfmoe moduleNameDir"
@@ -174,6 +190,7 @@ function tfmoe {
 
 ##################
 ### AWS SSO Access
+## AWS SSO profile picker & login: awa
 function awa() {
     # AWS account login function using a SSO profile.
     # Requirements:
@@ -206,6 +223,7 @@ function awa() {
     echo ""
 }
 
+## Switch AWS profile (no login): awp
 function awp() {
     # AWS profile switch function when SSO login already happened.
     # Requirements:
@@ -237,6 +255,7 @@ function awp() {
     echo ""
 }
 
+## Select AWS region & list EKS clusters: awr [default]
 function awr() {
     # AWS region switch function
     # Requirements:
@@ -281,6 +300,7 @@ function awr() {
     echo ""
 }
 
+## Update kubeconfig for EKS cluster & unset AWS envs: awc clusterName
 function awc() {
     # AWS eks cluster switch function
     # Requirements:
@@ -326,6 +346,7 @@ function awc() {
     echo ""
 }
 
+## Assume predefined org root role (edit ARN first!): sopson
 function sopson() {
     unset AWS_SESSION_TOKEN
     assumed_role=$(aws sts assume-role \
@@ -336,26 +357,31 @@ function sopson() {
     export AWS_SESSION_TOKEN=$(echo $assumed_role | jq -r .Credentials.SessionToken)
 }
 
+## Unset assumed role credentials: sopsoff
 function sopsoff() {
     unset AWS_ACCESS_KEY_ID
     unset AWS_SECRET_ACCESS_KEY
     unset AWS_SESSION_TOKEN
 }
 
+## Ephemeral busybox debug pod: kdebug_busy
 kdebug_busy() {
     kubectl run -i --rm --tty debug --image=busybox --restart=Never -- sh
 }
 
+## Ephemeral ubuntu debug pod: kdebug_ubuntu
 kdebug_ubuntu() {
     kubectl run -i --rm --tty debug --image=ubuntu --restart=Never -- sh
 }
 
+## Vault read single field: get_secret field path
 function get_secret {
     command="vault kv get -field=$1 $2"
     echo >&2 $command
     eval $command
 }
 
+## direnv allow & show localbackend.tf: dea
 function dea {
     direnv allow .
     if [ -f localbackend.tf ]; then

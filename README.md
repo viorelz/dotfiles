@@ -36,6 +36,30 @@ You could overwrite all .bash* files by running:
 ```
 Or you could adapt the Makefile to your needs and have symlinks to all config files so you can keep up with the latest changes in the repo.
 
+## Homebrew bundle (macOS)
+If you're on macOS and want to install the curated toolset, review and then run:
+```
+brew bundle --file=./Brewfile
+```
+You can see what would be installed without changing anything:
+```
+brew bundle check --file=./Brewfile
+```
+Regenerate the Brewfile from your current system (review the diff before committing):
+```
+brew bundle dump --file=./Brewfile --force
+```
+
+## Function & alias help
+Most helper functions are documented inline in `.bash_functions` (open it or `grep '^##' .bash_functions`). Aliases live in `.bash_aliases`. After sourcing your new environment you can inspect definitions with:
+```
+type functionName
+```
+Example:
+```
+type mkcd
+```
+
 ## AWSCli & K8s config
 Among the devops tools you also get the awscli. To use it, please browse to AWS, click the "Command line or programmatic access" link of the desired AWS account:
 ![AWS Start](/docs/aws_start.jpg "AWS Start")

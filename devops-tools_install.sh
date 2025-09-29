@@ -1,4 +1,33 @@
 #!/bin/bash
+###############################################################################
+# File: devops-tools_install.sh
+# Purpose: Bootstrap a Linux (Debian-based or generic) environment with common
+#          DevOps tooling (kubectl, kubelogin, krew + plugins, helm + plugins,
+#          awscli, tfenv, shell configs) and minimal quality-of-life tools.
+# Usage:   ./devops-tools_install.sh
+# Behavior:
+#   - Ensures ~/.local/bin and ~/.kube exist
+#   - Copies .bash* files into $HOME (overwrites!)
+#   - Installs base packages via apt when on Debian/Ubuntu
+#   - Downloads and installs: kubectl, kubelogin, krew, ctx, ns
+#   - Installs helm + helm-diff plugin
+#   - Installs awscli v2, tfenv (pins Terraform 1.1.4), enables completions
+#   - Secures kube config permissions and sources ~/.bashrc
+# Prerequisites:
+#   - bash, curl, wget, unzip, git, jq available (installs some via apt if Debian)
+#   - Network access to GitHub / vendor endpoints
+#   - For awscli install: sudo privileges (writes to /usr/local)
+# Idempotency: Re-runs are mostly safe; tools won't be reinstalled if detected.
+# Environment Variables Influenced:
+#   PATH (prepended with ~/.local/bin and krew bin if installed)
+#   EDITOR (set to /usr/bin/vim)
+# Security:
+#   - chmod go-rwx on ~/.kube/config to protect kube credentials
+#   - No automatic backup of prior dotfiles
+# Exit Codes:
+#   0 success; non-zero on missing critical prerequisites or command failure
+###############################################################################
+set -euo pipefail
 
 mkdir -p ~/.local/bin ~/.kube
 export EDITOR="/usr/bin/vim"
@@ -32,7 +61,8 @@ if ! command -v unzip 1>/dev/null 2>&1; then
   exit 1
 fi
 
-cp .bash* ~/
+# Copy bash dotfiles (overwrites existing)
+cp .bash* ~/ 
 
 # install kubectl
 if ! command -v kubectl 1>/dev/null 2>&1; then
@@ -55,8 +85,8 @@ if ! command -v kubelogin 1>/dev/null 2>&1; then
 fi
 
 # install krew plugin for kubectl
-kubectl plugin list | grep krew >/dev/null 2>&1
-if [ $? -eq 1 ]; then
+kubectl plugin list | grep krew >/dev/null 2>&1 || true
+if ! kubectl plugin list 2>/dev/null | grep -q '\bkrew\b'; then
   echo
   echo
   echo "==================== Installing krew plugin for kubectl"
@@ -67,15 +97,12 @@ if [ $? -eq 1 ]; then
 fi
 
 # install ctx and ns plugins for kubectl
-kubectl plugin list 2>/dev/null >/tmp/krew_plugins
-grep -w 'krew' /tmp/krew_plugins >/dev/null 2>&1
-haveKrew=$?
-grep -w 'ctx' /tmp/krew_plugins >/dev/null 2>&1
-haveCTX=$?
-grep -w 'ns' /tmp/krew_plugins >/dev/null 2>&1
-haveNS=$?
-echo "krew=${haveKrew}, ctx=${haveCTX}, ns=${haveNS}"
-if [ $haveKrew -eq 0 ] && [ $haveCTX -eq 1 ] || [ $haveNS -eq 1 ]; then
+kubectl plugin list 2>/dev/null >/tmp/krew_plugins || true
+grep -w 'krew' /tmp/krew_plugins >/dev/null 2>&1 && haveKrew=0 || haveKrew=1
+grep -w 'ctx' /tmp/krew_plugins >/dev/null 2>&1 && haveCTX=0 || haveCTX=1
+grep -w 'ns' /tmp/krew_plugins >/dev/null 2>&1 && haveNS=0 || haveNS=1
+echo "Detected plugins: krew=${haveKrew}, ctx=${haveCTX}, ns=${haveNS}"
+if [ $haveKrew -eq 0 ] && { [ $haveCTX -eq 1 ] || [ $haveNS -eq 1 ]; }; then
   echo
   echo
   echo "==================== Installing ctx and ns plugins for kubectl"
@@ -126,5 +153,8 @@ if command -v helm 1>/dev/null 2>&1; then
   source <(helm completion bash)
 fi
 
-chmod go-rwx ~/.kube/config
-source ~/.bashrc
+chmod go-rwx ~/.kube/config 2>/dev/null || true
+echo "Sourcing ~/.bashrc to load new environment..."
+source ~/.bashrc || true
+
+echo "DevOps tool bootstrap complete."

@@ -1,3 +1,26 @@
+################################################################################
+# Brewfile - Homebrew bundle manifest for macOS development & DevOps tooling.
+#
+# Usage:
+#   # Install everything listed (taps, formulae, casks):
+#   brew bundle --file=./Brewfile
+#
+#   # Check what would be installed/missing without changing system:
+#   brew bundle check --file=./Brewfile
+#
+#   # Dump current system state (DO NOT overwrite blindly; review diff):
+#   brew bundle dump --file=./Brewfile --force
+#
+# Lockfile:
+#   Brewfile.lock.json is generated automatically; commit it to pin versions
+#   if reproducibility is desired. Remove it for latest versions each install.
+#
+# Notes:
+#   - Many entries are commented out for optional tooling; uncomment as needed.
+#   - Keep related formulae grouped (taps first, then active formulae, then casks).
+#   - Comments after each entry briefly describe purpose when non-obvious.
+################################################################################
+
 # brew "cmake"
 # brew "cocoapods"
 # brew "dart-lang/dart/dart"
@@ -134,6 +157,7 @@ cask "1password-cli"
 cask "anaconda"
 cask "blender"
 cask "brave-browser"
+cask "commander-one"
 cask "cyberduck"
 cask "firefox"
 cask "font-cascadia-code"

@@ -1,4 +1,27 @@
 #!/bin/bash
+###############################################################################
+# File: desktop-fedora_install.sh
+# Purpose: Provision a Fedora desktop/workstation with common productivity,
+#          development and DevOps tools (repos, packages, desktop apps, VSCode,
+#          Kubernetes tooling, virtualization, media, fonts, etc.).
+# Usage:   sudo ./desktop-fedora_install.sh
+# Notes:
+#   - Must be run with sufficient privileges to install system packages.
+#   - Assumes a recent Fedora release (uses rpmfusion release macro).
+#   - Several operations (rsync, mv, cp) depend on environment variables:
+#       HOMEBAK, MYHOME, SYSBAK (must point to backup sources) - ensure defined.
+#   - Some commented blocks (krew install) left for manual enable if needed.
+# Idempotency: Re-running may re-install or overwrite configs (libvirt, zabbix).
+# Sensitive Actions:
+#   - Disables and stops cups service.
+#   - Replaces /etc/libvirt and /etc/zabbix_agentd.conf.
+#   - Enables services: zabbix-agent, libvirtd.
+# TODO (future improvement ideas):
+#   - Parameterize package groups
+#   - Detect already configured repos before adding
+#   - Guard destructive moves with backups
+###############################################################################
+set -euo pipefail
 
 cd
 
@@ -71,9 +94,6 @@ find ./bin -type f
 # kubectl krew install ctx
 # kubectl krew install ns
 
-rpm --import https://packages.microsoft.com/keys/microsoft.asc
-sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
-dnf install code
 
 # install vscode extentions
 # code --list-extensions | xargs -L 1 echo code --install-extension
