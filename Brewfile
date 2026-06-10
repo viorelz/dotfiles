@@ -114,6 +114,8 @@ brew "nmap"
 brew "nvtop"  #terminal Interactive GPU process monitor
 brew "openconnect"
 brew "pinentry-mac"
+brew "podman"
+brew "podman-compose"
 brew "pre-commit"
 brew "pyenv"
 brew "python"

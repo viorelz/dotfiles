@@ -1,52 +1,81 @@
 #!/bin/bash
 ###############################################################################
 # File: desktop-fedora_install.sh
-# Purpose: Provision a Fedora desktop/workstation with common productivity,
-#          development and DevOps tools (repos, packages, desktop apps, VSCode,
-#          Kubernetes tooling, virtualization, media, fonts, etc.).
+# Purpose: Provision a Fedora workstation with common productivity, development
+#          and DevOps tooling (repos, packages, desktop apps, VSCode, k8s tools,
+#          virtualization, media, fonts, etc.).
 # Usage:   sudo ./desktop-fedora_install.sh
 # Notes:
-#   - Must be run with sufficient privileges to install system packages.
-#   - Assumes a recent Fedora release (uses rpmfusion release macro).
-#   - Several operations (rsync, mv, cp) depend on environment variables:
-#       HOMEBAK, MYHOME, SYSBAK (must point to backup sources) - ensure defined.
-#   - Some commented blocks (krew install) left for manual enable if needed.
-# Idempotency: Re-running may re-install or overwrite configs (libvirt, zabbix).
-# Sensitive Actions:
-#   - Disables and stops cups service.
-#   - Replaces /etc/libvirt and /etc/zabbix_agentd.conf.
-#   - Enables services: zabbix-agent, libvirtd.
-# TODO (future improvement ideas):
-#   - Parameterize package groups
-#   - Detect already configured repos before adding
-#   - Guard destructive moves with backups
+#   - Requires root (or sudo) for package installation & system config changes.
+#   - Environment variables HOMEBAK, MYHOME, SYSBAK optionally point to backup
+#     sources for user and system configuration artifacts.
+#   - Creates .orig backups for critical config files before replacement.
+# Safety Improvements (added):
+#   - Root execution check
+#   - Backups before mv/cp on /etc configs
+#   - Quoting and -y flags on dnf
+#   - Logging helpers with color
+# TODO:
+#   - Parameterize large package groups
+#   - Add flags to enable/disable groups
 ###############################################################################
 set -euo pipefail
 
-cd
+if [ "${EUID:-$(id -u)}" -ne 0 ]; then
+  echo "This script must be run as root (sudo)." >&2
+  exit 1
+fi
 
-wget http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-wget http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-wget http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noarch.rpm
-dnf localinstall rpmfusion* adobe-release* -y
+color() { local c="$1"; shift || true; printf "\033[%sm%s\033[0m\n" "$c" "$*"; }
+info() { color '1;34' "[INFO] $*"; }
+warn() { color '1;33' "[WARN] $*"; }
+err()  { color '1;31' "[ERR ] $*" >&2; }
 
-dnf install dnf-plugins-core tree bind-utils lynx dstat iotop tcpdump iptraf telnet nc lftp man rsync net-tools mdadm openssh-clients mc strace lsof wget git lshw hdparm parted bash-completion zip unzip hstr pciutils smartmontools hddtemp jwhois pv pwgen smem htop util-linux
+info "Starting Fedora workstation provisioning"
 
-dnf install keepassxc sshfs pssh fido2-tools nmap python-pip python-dns p7zip gparted podman-compose.noarch podman-docker.noarch virt-manager meld tigervnc rdesktop transmission wireshark filezilla postfix zabbix-agent terminus* cascadia-code-fonts terminator direnv evtest mpv gnome-mpv audacious audacity flash-plugin ffmpeg firefox thunderbird nm-connection-editor gkrellm-sun wmctrl gnome-tweak-tool gnome-shell-extension* gnome-shell-theme* gdm dconf-editor gconf-editor calibre libreoffice-draw dia gimp-data-extras gimp-resynthesizer ufraw-gimp gimp vim-enhanced gedit xclip
+cd "$HOME" || true
 
-dnf install \
-  synergy_*.rpm
+FEDVER=$(rpm -E %fedora)
+info "Detected Fedora version ${FEDVER}"
 
-dnf config-manager --add-repo https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-rpm --import https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
-dnf install brave-browser
+info "Fetching RPM Fusion & Adobe repo rpms"
+wget -q "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDVER}.noarch.rpm"
+wget -q "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDVER}.noarch.rpm"
+wget -q http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noarch.rpm
+dnf -y localinstall rpmfusion* adobe-release* || true
 
-rpm --import https://packages.microsoft.com/keys/microsoft.asc
-echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" >/etc/yum.repos.d/vscode.repo
-dnf check-update
-dnf install code -y
+info "Installing base tooling packages"
+dnf -y install dnf-plugins-core tree bind-utils lynx dstat iotop tcpdump iptraf telnet nc lftp man rsync net-tools mdadm openssh-clients mc strace lsof wget git lshw hdparm parted bash-completion zip unzip hstr pciutils smartmontools hddtemp jwhois pv pwgen smem htop util-linux || true
 
-cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+info "Installing desktop & productivity packages"
+dnf -y install keepassxc sshfs pssh fido2-tools nmap python-pip python-dns p7zip gparted podman-compose.noarch podman-docker.noarch virt-manager meld tigervnc rdesktop transmission wireshark filezilla postfix zabbix-agent terminus* cascadia-code-fonts terminator direnv evtest mpv gnome-mpv audacious audacity flash-plugin ffmpeg firefox thunderbird nm-connection-editor gkrellm-sun wmctrl gnome-tweak-tool gnome-shell-extension* gnome-shell-theme* gdm dconf-editor gconf-editor calibre libreoffice-draw dia gimp-data-extras gimp-resynthesizer ufraw-gimp gimp vim-enhanced gedit xclip || true
+
+if ls synergy_*.rpm >/dev/null 2>&1; then
+  info "Installing local synergy RPM(s)"
+  dnf -y install synergy_*.rpm || warn "Synergy install failed"
+fi
+
+info "Adding Brave browser repository"
+dnf -y install dnf-plugins-core >/dev/null 2>&1 || true
+dnf config-manager --add-repo https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo || true
+rpm --import https://brave-browser-rpm-release.s3.brave.com/brave-core.asc || true
+dnf -y install brave-browser || warn "Brave browser install failed"
+
+info "Configuring VS Code repository"
+rpm --import https://packages.microsoft.com/keys/microsoft.asc || true
+cat > /etc/yum.repos.d/vscode.repo <<'REPO'
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+REPO
+dnf -y check-update || true
+dnf -y install code || warn "VS Code install failed"
+
+info "(Optional) Kubernetes repo setup"
+cat > /etc/yum.repos.d/kubernetes.repo <<'K8S'
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
@@ -54,60 +83,89 @@ enabled=1
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-EOF
+K8S
 
-# flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-# flatpak install flathub org.telegram.desktop
+info "Disabling cups service"
+systemctl disable --now cups 2>/dev/null || true
 
-systemctl disable --now cups
+# --- User config rsync (guard env vars) ---
+if [ -n "${HOMEBAK:-}" ] && [ -n "${MYHOME:-}" ]; then
+  if [ -d "${HOMEBAK}/.config/autostart" ]; then
+    info "Syncing autostart entries"
+    rsync -a "${HOMEBAK}/.config/autostart/" "${MYHOME}/.config/autostart/" || warn "Autostart rsync failed"
+  else
+    warn "${HOMEBAK}/.config/autostart missing; skipping autostart rsync"
+  fi
+else
+  warn "HOMEBAK or MYHOME not set; skipping autostart rsync"
+fi
 
-rsync -a "${HOMEBAK}/.config/autostart/" "${MYHOME}/.config/autostart/"
+# --- Zabbix agent config replacement ---
+if [ -n "${SYSBAK:-}" ] && [ -f "${SYSBAK}/etc/zabbix_agentd.conf" ]; then
+  if [ -f /etc/zabbix_agentd.conf ] && [ ! -f /etc/zabbix_agentd.conf.orig ]; then
+    cp /etc/zabbix_agentd.conf /etc/zabbix_agentd.conf.orig
+  fi
+  cp "${SYSBAK}/etc/zabbix_agentd.conf" /etc/ || warn "Failed to copy zabbix_agentd.conf"
+  systemctl enable --now zabbix-agent.service 2>/dev/null || warn "Failed enabling zabbix-agent"
+else
+  warn "SYSBAK/etc/zabbix_agentd.conf not available; skipping zabbix config"
+fi
 
-mv /etc/zabbix_agentd.conf /etc/zabbix_agentd.conf.orig
-cp "${SYSBAK}/etc/zabbix_agentd.conf" /etc
-systemctl enable --now zabbix-agent.service
+# --- libvirt config replacement ---
+if [ -n "${SYSBAK:-}" ] && [ -d "${SYSBAK}/etc/libvirt" ]; then
+  if [ -d /etc/libvirt ] && [ ! -d /etc/libvirt.orig ]; then
+    cp -a /etc/libvirt /etc/libvirt.orig
+  fi
+  cp -a "${SYSBAK}/etc/libvirt" /etc/ || warn "Failed to copy libvirt directory"
+  systemctl enable --now libvirtd.service 2>/dev/null || warn "Failed enabling libvirtd"
+else
+  warn "SYSBAK/etc/libvirt not available; skipping libvirt config"
+fi
 
-mv /etc/libvirt /etc/libvirt.orig
-cp "${SYSBAK}/etc/libvirt" /etc
-systemctl enable --now libvirtd.service
+# --- Minikube ---
+if ! command -v minikube >/dev/null 2>&1; then
+  info "Installing minikube"
+  curl -fsSLo /usr/local/bin/minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  chmod +x /usr/local/bin/minikube || true
+else
+  info "minikube already installed"
+fi
 
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
+# --- kubelogin (download only reminder) ---
+if ! command -v kubelogin >/dev/null 2>&1; then
+  info "Fetching kubelogin (manual placement reminder)"
+  tmpd=$(mktemp -d)
+  ( cd "$tmpd" && wget -q https://github.com/Azure/kubelogin/releases/download/v0.0.28/kubelogin-linux-amd64.zip && unzip -q kubelogin-linux-amd64.zip ) || warn "kubelogin fetch failed"
+  find "$tmpd" -type f -name kubelogin || true
+  warn "Move the kubelogin binary above into your PATH manually"
+else
+  info "kubelogin already installed"
+fi
 
-wget https://github.com/Azure/kubelogin/releases/download/v0.0.28/kubelogin-linux-amd64.zip
-unzip kubelogin-linux-amd64.zip
-echo "Remember to move the kubelogin binary to your favorite bin location:"
-find ./bin -type f
+# --- VS Code extensions ---
+if command -v code >/dev/null 2>&1; then
+  info "Installing VS Code extensions"
+  extensions=(
+    4ops.terraform
+    eamodio.gitlens
+    fudd.toggle-zen-mode
+    lunuan.kubernetes-templates
+    mhutchie.git-graph
+    moshfeu.compare-folders
+    ms-kubernetes-tools.vscode-kubernetes-tools
+    ms-python.python
+    ms-python.vscode-pylance
+    redhat.vscode-yaml
+    VisualStudioExptTeam.intellicode-api-usage-examples
+    VisualStudioExptTeam.vscodeintellicode
+    yzhang.markdown-all-in-one
+    ZainChen.json
+  )
+  for ext in "${extensions[@]}"; do
+    code --install-extension "$ext" >/dev/null 2>&1 || warn "Failed installing VS Code extension $ext"
+  done
+else
+  warn "code command not found; skipping VS Code extensions"
+fi
 
-# ## install kubectl krew plugin
-# (
-#   set -x; cd "$(mktemp -d)" &&
-#   OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-#   ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-#   KREW="krew-${OS}_${ARCH}" &&
-#   curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-#   tar zxvf "${KREW}.tar.gz" &&
-#   ./"${KREW}" install krew
-# )
-# export PATH="$HOME/.krew/bin:$PATH"
-
-# kubectl krew install ctx
-# kubectl krew install ns
-
-
-# install vscode extentions
-# code --list-extensions | xargs -L 1 echo code --install-extension
-code --install-extension 4ops.terraform
-code --install-extension eamodio.gitlens
-code --install-extension fudd.toggle-zen-mode
-code --install-extension lunuan.kubernetes-templates
-code --install-extension mhutchie.git-graph
-code --install-extension moshfeu.compare-folders
-code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
-code --install-extension ms-python.python
-code --install-extension ms-python.vscode-pylance
-code --install-extension redhat.vscode-yaml
-code --install-extension VisualStudioExptTeam.intellicode-api-usage-examples
-code --install-extension VisualStudioExptTeam.vscodeintellicode
-code --install-extension yzhang.markdown-all-in-one
-code --install-extension ZainChen.json
+info "Fedora workstation provisioning complete"

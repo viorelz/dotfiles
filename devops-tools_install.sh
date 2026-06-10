@@ -1,160 +1,205 @@
 #!/bin/bash
 ###############################################################################
 # File: devops-tools_install.sh
-# Purpose: Bootstrap a Linux (Debian-based or generic) environment with common
-#          DevOps tooling (kubectl, kubelogin, krew + plugins, helm + plugins,
-#          awscli, tfenv, shell configs) and minimal quality-of-life tools.
+# Purpose: Bootstrap a Linux environment with common DevOps tooling
+#          (kubectl, kubelogin, krew+plugins, helm+plugins, awscli, tfenv).
 # Usage:   ./devops-tools_install.sh
-# Behavior:
-#   - Ensures ~/.local/bin and ~/.kube exist
-#   - Copies .bash* files into $HOME (overwrites!)
-#   - Installs base packages via apt when on Debian/Ubuntu
-#   - Downloads and installs: kubectl, kubelogin, krew, ctx, ns
-#   - Installs helm + helm-diff plugin
-#   - Installs awscli v2, tfenv (pins Terraform 1.1.4), enables completions
-#   - Secures kube config permissions and sources ~/.bashrc
-# Prerequisites:
-#   - bash, curl, wget, unzip, git, jq available (installs some via apt if Debian)
-#   - Network access to GitHub / vendor endpoints
-#   - For awscli install: sudo privileges (writes to /usr/local)
-# Idempotency: Re-runs are mostly safe; tools won't be reinstalled if detected.
-# Environment Variables Influenced:
-#   PATH (prepended with ~/.local/bin and krew bin if installed)
-#   EDITOR (set to /usr/bin/vim)
-# Security:
-#   - chmod go-rwx on ~/.kube/config to protect kube credentials
-#   - No automatic backup of prior dotfiles
+# Features:
+#   - Safe, idempotent installs (skips tools already present)
+#   - Optional installs controlled by env flags (set to 0 to skip):
+#       INSTALL_KUBECTL=1 INSTALL_KUBELOGIN=1 INSTALL_KREW=1 \
+#       INSTALL_HELM=1 INSTALL_AWSCLI=1 INSTALL_TFENV=1
+#   - Parameterized Terraform version via TF_VERSION (default 1.1.4)
+#   - Copies repository .bash* files into $HOME (overwrites, no backup here)
+#   - Adds shell completions for kubectl & helm when available
+#   - Minimal logging with color (silently continues on non-critical steps)
+# Requirements:
+#   - bash, curl, wget, unzip present (apt install if Debian-based)
+#   - Network access; sudo for some global installs (awscli)
 # Exit Codes:
-#   0 success; non-zero on missing critical prerequisites or command failure
+#   0 success; non-zero on missing critical prerequisite or failing command
 ###############################################################################
 set -euo pipefail
 
-mkdir -p ~/.local/bin ~/.kube
+# ------------------------------- Configuration ------------------------------
+INSTALL_KUBECTL=${INSTALL_KUBECTL:-1}
+INSTALL_KUBELOGIN=${INSTALL_KUBELOGIN:-1}
+INSTALL_KREW=${INSTALL_KREW:-1}
+INSTALL_HELM=${INSTALL_HELM:-1}
+INSTALL_AWSCLI=${INSTALL_AWSCLI:-1}
+INSTALL_TFENV=${INSTALL_TFENV:-1}
+TF_VERSION=${TF_VERSION:-1.1.4}
+
 export EDITOR="/usr/bin/vim"
 export PATH="$HOME/.local/bin:$HOME/bin:${PATH}"
+mkdir -p "$HOME/.local/bin" "$HOME/.kube"
 
-find $HOME -mindepth 1 -maxdepth 1 -type f -name '.bash*' | while read -r BFILE; do
-  F2REPLACE=$(basename "${BFILE}")
-  # echo "$HOME/${F2REPLACE} will be replaced!"
-  if [ -f "$HOME/${F2REPLACE}" ]; then
-    echo "$HOME/${F2REPLACE} will be replaced!"
+# ------------------------------- Logging helpers ----------------------------
+color() { local c="$1"; shift || true; printf "\033[%sm%s\033[0m\n" "$c" "$*"; }
+info() { color '1;34' "[INFO] $*"; }
+warn() { color '1;33' "[WARN] $*"; }
+err()  { color '1;31' "[ERR ] $*" >&2; }
+
+# ------------------------------- Prerequisites ------------------------------
+if [ -f /etc/debian_version ]; then
+  info "Debian-based system detected; ensuring base packages via apt"
+  sudo apt update -y >/dev/null 2>&1 || true
+  sudo apt install -y curl wget unzip git bash-completion jq >/dev/null 2>&1 || true
+fi
+
+for bin in wget curl unzip; do
+  if ! command -v "$bin" >/dev/null 2>&1; then
+    err "Required command '$bin' not found. Install it and re-run."; exit 1
   fi
-  cp "${F2REPLACE}" "$HOME/${F2REPLACE}"
 done
 
-if [ -f /etc/debian_version ]; then
-  sudo apt install curl wget unzip mc tree rsync lsof git bash-completion httpie
+# ------------------------------- Dotfiles copy ------------------------------
+info "Copying repository .bash* files into HOME (overwrites)"
+shopt -s nullglob
+for f in .bash*; do
+  [ -f "$f" ] || continue
+  if [ -f "$HOME/$f" ]; then
+    warn "$HOME/$f will be replaced"
+  fi
+  cp "$f" "$HOME/$f"
+done
+shopt -u nullglob
+
+# ------------------------------- kubectl ------------------------------------
+if [ "$INSTALL_KUBECTL" = "1" ]; then
+  if command -v kubectl >/dev/null 2>&1; then
+    info "kubectl already installed ($(kubectl version --client --short 2>/dev/null || echo present))"
+  else
+    info "Installing kubectl"
+    curl -fsSL -o kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    mv kubectl "$HOME/.local/bin/kubectl"
+  fi
+else
+  info "Skipping kubectl (INSTALL_KUBECTL=0)"
 fi
 
-if ! command -v wget 1>/dev/null 2>&1; then
-  echo "Please install wget"
-  exit 1
+# ------------------------------- kubelogin ----------------------------------
+if [ "$INSTALL_KUBELOGIN" = "1" ]; then
+  if command -v kubelogin >/dev/null 2>&1; then
+    info "kubelogin already installed"
+  else
+    info "Installing kubelogin"
+    tmpdir=$(mktemp -d)
+    ( cd "$tmpdir" && \
+      wget -q https://github.com/Azure/kubelogin/releases/download/v0.0.29/kubelogin-linux-amd64.zip && \
+      unzip -q kubelogin-linux-amd64.zip && \
+      find . -name kubelogin -exec mv {} "$HOME/.local/bin/" \; )
+    rm -rf "$tmpdir"
+  fi
+else
+  info "Skipping kubelogin (INSTALL_KUBELOGIN=0)"
 fi
 
-if ! command -v curl 1>/dev/null 2>&1; then
-  echo "Please install curl"
-  exit 1
+# ------------------------------- krew + plugins -----------------------------
+if [ "$INSTALL_KREW" = "1" ]; then
+  have_kubectl=0; command -v kubectl >/dev/null 2>&1 || have_kubectl=1
+  if [ $have_kubectl -ne 0 ]; then
+    warn "kubectl not present; skipping krew installation"
+  else
+    if kubectl plugin list 2>/dev/null | grep -q '\bkrew\b'; then
+      info "krew already installed"
+    else
+      info "Installing krew"
+      tmpdir=$(mktemp -d)
+      ( cd "$tmpdir" && \
+        curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew-linux_amd64.tar.gz" && \
+        tar zxf krew-linux_amd64.tar.gz && \
+        ./krew-linux_amd64 install krew )
+      rm -rf "$tmpdir"
+      export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+    fi
+    # ctx & ns
+    if kubectl plugin list 2>/dev/null | grep -qw ctx && kubectl plugin list 2>/dev/null | grep -qw ns; then
+      info "ctx and ns plugins already installed"
+    else
+      info "Installing ctx and ns plugins"
+      kubectl krew install ctx ns || warn "Failed installing ctx/ns"
+    fi
+  fi
+else
+  info "Skipping krew (INSTALL_KREW=0)"
 fi
 
-if ! command -v unzip 1>/dev/null 2>&1; then
-  echo "Please install unzip"
-  exit 1
+# ------------------------------- helm + plugin ------------------------------
+if [ "$INSTALL_HELM" = "1" ]; then
+  if command -v helm >/dev/null 2>&1; then
+    info "helm already installed"
+  else
+    info "Installing helm"
+    tmpfile=$(mktemp)
+    curl -fsSL -o "$tmpfile" https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    chmod 700 "$tmpfile" && "$tmpfile" >/dev/null 2>&1 || "$tmpfile"
+    rm -f "$tmpfile"
+  fi
+  if command -v helm >/dev/null 2>&1; then
+    if helm plugin list 2>/dev/null | grep -q 'diff'; then
+      info "helm-diff plugin already installed"
+    else
+      info "Installing helm-diff plugin"
+      helm plugin install https://github.com/databus23/helm-diff || warn "helm-diff install failed"
+    fi
+  fi
+else
+  info "Skipping helm (INSTALL_HELM=0)"
 fi
 
-# Copy bash dotfiles (overwrites existing)
-cp .bash* ~/ 
-
-# install kubectl
-if ! command -v kubectl 1>/dev/null 2>&1; then
-  echo
-  echo
-  echo "==================== Installing kubectl"
-  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-  chmod +x kubectl
-  mv ./kubectl ~/.local/bin/kubectl
+# ------------------------------- awscli v2 ----------------------------------
+if [ "$INSTALL_AWSCLI" = "1" ]; then
+  if command -v aws >/dev/null 2>&1; then
+    info "awscli already installed"
+  else
+    info "Installing awscli v2"
+    tmpdir=$(mktemp -d)
+    ( cd "$tmpdir" && curl -fsSL -o awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" && unzip -q awscliv2.zip && sudo ./aws/install ) || err "awscli install failed"
+    rm -rf "$tmpdir"
+  fi
+else
+  info "Skipping awscli (INSTALL_AWSCLI=0)"
 fi
 
-# install kubelogin:
-if ! command -v kubelogin 1>/dev/null 2>&1; then
-  echo
-  echo
-  echo "==================== Installing kubelogin"
-  wget https://github.com/Azure/kubelogin/releases/download/v0.0.29/kubelogin-linux-amd64.zip
-  unzip kubelogin-linux-amd64.zip
-  find . -name kubelogin -exec mv {} ~/.local/bin/ \;
+# ------------------------------- tfenv + terraform --------------------------
+if [ "$INSTALL_TFENV" = "1" ]; then
+  if command -v tfenv >/dev/null 2>&1; then
+    info "tfenv already installed"
+  else
+    info "Installing tfenv"
+    git clone --depth=1 https://github.com/tfutils/tfenv.git "$HOME/.tfenv"
+  fi
+  if command -v tfenv >/dev/null 2>&1; then
+    if tfenv list | grep -q "${TF_VERSION}"; then
+      info "Terraform ${TF_VERSION} already installed"
+    else
+      info "Installing Terraform ${TF_VERSION} via tfenv"
+      "$HOME/.tfenv/bin/tfenv" install "${TF_VERSION}" || warn "Failed terraform install"
+    fi
+    "$HOME/.tfenv/bin/tfenv" use "${TF_VERSION}" || true
+  fi
+else
+  info "Skipping tfenv/Terraform (INSTALL_TFENV=0)"
 fi
 
-# install krew plugin for kubectl
-kubectl plugin list | grep krew >/dev/null 2>&1 || true
-if ! kubectl plugin list 2>/dev/null | grep -q '\bkrew\b'; then
-  echo
-  echo
-  echo "==================== Installing krew plugin for kubectl"
-  curl -fsSLO https://github.com/kubernetes-sigs/krew/releases/latest/download/krew-linux_amd64.tar.gz
-  tar zxvf krew-linux_amd64.tar.gz
-  ./krew-linux_amd64 install krew
-  export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-fi
-
-# install ctx and ns plugins for kubectl
-kubectl plugin list 2>/dev/null >/tmp/krew_plugins || true
-grep -w 'krew' /tmp/krew_plugins >/dev/null 2>&1 && haveKrew=0 || haveKrew=1
-grep -w 'ctx' /tmp/krew_plugins >/dev/null 2>&1 && haveCTX=0 || haveCTX=1
-grep -w 'ns' /tmp/krew_plugins >/dev/null 2>&1 && haveNS=0 || haveNS=1
-echo "Detected plugins: krew=${haveKrew}, ctx=${haveCTX}, ns=${haveNS}"
-if [ $haveKrew -eq 0 ] && { [ $haveCTX -eq 1 ] || [ $haveNS -eq 1 ]; }; then
-  echo
-  echo
-  echo "==================== Installing ctx and ns plugins for kubectl"
-  kubectl krew install ctx
-  kubectl krew install ns
-fi
-
-if ! command -v helm 1>/dev/null 2>&1; then
-  echo
-  echo
-  echo "==================== Installing helm"
-  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-  chmod 700 get_helm.sh
-  ./get_helm.sh
-fi
-
-if command -v helm 1>/dev/null 2>&1; then
-  helm plugin install https://github.com/databus23/helm-diff
-fi
-
-# install awscli
-if ! command -v aws 1>/dev/null 2>&1; then
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  unzip awscliv2.zip
-  sudo ./aws/install
-fi
-
-# install tfenv
-if ! command -v tfenv 1>/dev/null 2>&1; then
-  echo
-  echo
-  echo "==================== Installing tfenv"
-  git clone --depth=1 https://github.com/tfutils/tfenv.git ~/.tfenv
-  ~/.tfenv/bin/tfenv install 1.1.4
-  ~/.tfenv/bin/tfenv use 1.1.4
-fi
-
-if command -v direnv 1>/dev/null 2>&1; then
+# ------------------------------- Completions --------------------------------
+if command -v direnv >/dev/null 2>&1; then
   eval "$(direnv hook bash)"
 fi
 
-if command -v kubectl 1>/dev/null 2>&1; then
-  source <(kubectl completion bash)
-  complete -F __start_kubectl k
+if command -v kubectl >/dev/null 2>&1; then
+  source <(kubectl completion bash) 2>/dev/null || true
+  complete -F __start_kubectl k 2>/dev/null || true
 fi
 
-if command -v helm 1>/dev/null 2>&1; then
-  source <(helm completion bash)
+if command -v helm >/dev/null 2>&1; then
+  source <(helm completion bash) 2>/dev/null || true
 fi
 
-chmod go-rwx ~/.kube/config 2>/dev/null || true
-echo "Sourcing ~/.bashrc to load new environment..."
-source ~/.bashrc || true
+chmod go-rwx "$HOME/.kube/config" 2>/dev/null || true
+info "Sourcing ~/.bashrc to load new environment (non-fatal if fails)"
+source "$HOME/.bashrc" 2>/dev/null || true
 
-echo "DevOps tool bootstrap complete."
+info "DevOps tool bootstrap complete."

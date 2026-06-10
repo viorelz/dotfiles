@@ -23,6 +23,9 @@
 
 all: sync
 
+help: ## Show this help (lists targets and their descriptions)
+	@grep -E '^[a-zA-Z_-]+:.*##' Makefile | sed -E 's/:.*##/: /' | sort
+
 backup: ## Backup existing real .bash* files into unique timestamped directory (never overwrites or removes last backup)
 ifeq ($(SKIP_BACKUP),1)
 	@echo "Skipping backup (SKIP_BACKUP=1)"
@@ -65,4 +68,4 @@ clean: ## Remove symlinked bash dotfiles from $HOME
 	rm -f ~/.bash_profile
 	rm -f ~/.bashrc
 
-.PHONY: all backup clean sync
+.PHONY: all backup clean sync help
